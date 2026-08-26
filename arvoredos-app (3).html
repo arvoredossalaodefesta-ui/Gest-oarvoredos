@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Os Arvoredos — Painel de Gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6EF;
+    --surface:#FFFFFF;
+    --surface-alt:#F1EBDC;
+    --ink:#2B2A25;
+    --ink-soft:#736C5C;
+    --sage:#5C6E52;
+    --sage-deep:#3E4A37;
+    --sage-mist:#E7ECE2;
+    --gold:#AE8A4E;
+    --gold-mist:#F4ECDB;
+    --border:#E6DECB;
+    --success:#4F7A4A; --success-bg:#E7F0E2;
+    --warning:#B07E2C; --warning-bg:#FAEFD8;
+    --danger:#A34B3C; --danger-bg:#F6E3DE;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(43,42,37,.04), 0 6px 20px rgba(43,42,37,.05);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Work Sans',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;}
+  button{font-family:inherit;cursor:pointer;}
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{width:224px;flex-shrink:0;background:var(--sage-deep);color:#EFEEE6;display:flex;flex-direction:column;padding:28px 18px;}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:36px;padding:0 6px;}
+  .brand svg{flex-shrink:0;}
+  .brand-name{font-family:'Fraunces',serif;font-size:18px;line-height:1.15;color:#fff;}
+  .brand-sub{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C9CFC0;margin-top:2px;}
+  nav{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:#D6D9CC;font-size:13.5px;text-align:left;transition:background .15s;}
+  .nav-item svg{opacity:.85;flex-shrink:0;}
+  .nav-item:hover{background:rgba(255,255,255,.06);}
+  .nav-item.active{background:rgba(255,255,255,.12);color:#fff;}
+  .nav-item.active svg{opacity:1;}
+  .sidebar-foot{margin-top:auto;padding:14px 12px 4px;border-top:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:10px;}
+  .avatar{width:30px;height:30px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+  .sidebar-foot div p{margin:0;}
+  .sf-name{font-size:12.5px;color:#fff;}
+  .sf-role{font-size:11px;color:#ABB19E;}
+
+  /* ---------- Main ---------- */
+  .content{flex:1;padding:32px 40px 60px;max-width:1180px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;}
+  .page-head h1{font-size:26px;margin:0;}
+  .page-head p{margin:4px 0 0;color:var(--ink-soft);font-size:13.5px;}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;border:1px solid transparent;font-size:13px;font-weight:500;}
+  .btn-primary{background:var(--sage);color:#fff;}
+  .btn-primary:hover{background:var(--sage-deep);}
+  .btn-ghost{background:var(--surface);border-color:var(--border);color:var(--ink);}
+  .btn-ghost:hover{background:var(--surface-alt);}
+
+  /* leaf divider — signature element */
+  .leaf-divider{display:flex;align-items:center;gap:10px;margin:34px 0 18px;color:var(--ink-soft);}
+  .leaf-divider .line{flex:1;height:1px;background:var(--border);}
+  .leaf-divider span{font-family:'Fraunces',serif;font-size:12.5px;letter-spacing:.04em;}
+
+  /* ---------- Dashboard ---------- */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);}
+  .stat-card .label{font-size:12px;color:var(--ink-soft);margin:0 0 6px;}
+  .stat-card .value{font-family:'Fraunces',serif;font-size:26px;margin:0;}
+  .stat-card .value.warn{color:var(--warning);}
+
+  .board{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-top:16px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .panel-head h3{margin:0;font-size:15.5px;}
+  .row-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--border);}
+  .row-item:first-of-type{border-top:none;}
+  .date-chip{width:42px;text-align:center;}
+  .date-chip .m{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
+  .date-chip .d{font-family:'Fraunces',serif;font-size:17px;}
+  .ri-title{font-size:13.5px;margin:0;}
+  .ri-sub{font-size:11.5px;color:var(--ink-soft);margin:1px 0 0;}
+  .badge{font-size:11px;padding:3px 10px;border-radius:99px;white-space:nowrap;}
+  .badge.success{background:var(--success-bg);color:var(--success);}
+  .badge.warning{background:var(--warning-bg);color:var(--warning);}
+  .badge.danger{background:var(--danger-bg);color:var(--danger);}
+  .pay-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;}
+  .pay-row .n{font-size:12px;color:var(--ink-soft);margin:2px 0 0;}
+
+  /* ---------- Agenda ---------- */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-nav{display:flex;align-items:center;gap:10px;}
+  .icon-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;}
+  .cal-title{font-family:'Fraunces',serif;font-size:17px;min-width:150px;text-align:center;}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--ink-soft);margin-bottom:10px;}
+  .legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:11.5px;color:var(--ink-soft);text-align:center;padding:2px 0 6px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-cell{height:76px;border-radius:8px;border:1px solid var(--border);background:var(--surface);padding:7px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;}
+  .cal-cell .n{font-size:11.5px;color:var(--ink-soft);}
+  .cal-cell .lbl{font-size:10px;line-height:1.25;font-weight:500;}
+  .cal-cell.confirmed{background:var(--success-bg);border-color:transparent;}
+  .cal-cell.confirmed .n,.cal-cell.confirmed .lbl{color:var(--success);}
+  .cal-cell.provisional{background:var(--warning-bg);border-color:transparent;}
+  .cal-cell.provisional .n,.cal-cell.provisional .lbl{color:var(--warning);}
+  .cal-cell.blocked{background:var(--danger-bg);border-color:transparent;}
+  .cal-cell.blocked .n,.cal-cell.blocked .lbl{color:var(--danger);}
+
+  /* ---------- Clientes ---------- */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .search{position:relative;max-width:280px;flex:1;}
+  .search input{width:100%;padding:9px 12px 9px 34px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:13px;}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.5;}
+  .funnel{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+  .funnel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;}
+  .funnel-card .n{font-family:'Fraunces',serif;font-size:22px;margin:2px 0 0;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead td{font-size:11px;color:var(--ink-soft);padding:10px 14px;background:var(--surface-alt);}
+  tbody td{padding:12px 14px;border-top:1px solid var(--border);}
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+
+  /* ---------- Ficha do evento ---------- */
+  .event-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .ev-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .ev-id{display:flex;gap:12px;align-items:center;}
+  .ev-avatar{width:46px;height:46px;border-radius:50%;background:var(--sage-mist);color:var(--sage-deep);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:15px;}
+  .ev-id h3{margin:0;font-size:17px;}
+  .ev-id p{margin:2px 0 0;font-size:12.5px;color:var(--ink-soft);}
+  .money-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+  .money-card{background:var(--surface-alt);border-radius:9px;padding:12px 14px;}
+  .money-card .l{font-size:11.5px;color:var(--ink-soft);margin:0 0 4px;}
+  .money-card .v{font-family:'Fraunces',serif;font-size:19px;margin:0;}
+  .installments td{font-size:13px;}
+  .btn-row{display:flex;gap:8px;margin-top:18px;}
+  .btn-row .btn{flex:1;justify-content:center;}
+
+  /* ---------- Nova reserva ---------- */
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;max-width:520px;box-shadow:var(--shadow);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:5px;}
+  .field input,.field select{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:13.5px;font-family:inherit;color:var(--ink);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .status-toggle{display:flex;gap:8px;}
+  .status-toggle button{flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12.5px;}
+  .status-toggle button.sel{border-color:var(--sage);background:var(--sage-mist);color:var(--sage-deep);font-weight:500;}
+
+  @media (max-width:880px){
+    .sidebar{width:72px;padding:20px 10px;}
+    .brand-name,.brand-sub,.nav-item span,.sf-name,.sf-role{display:none;}
+    .nav-item{justify-content:center;}
+    .stat-grid,.board,.funnel{grid-template-columns:1fr 1fr;}
+    .content{padding:24px 18px 50px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="15" cy="15" r="14" fill="#5C6E52" stroke="#AE8A4E" stroke-width="0.6"/>
+        <path d="M15 22V14M15 14C15 10 12 9 9 9C9 13 11 15 15 14ZM15 14C15 10 18 9 21 9C21 13 19 15 15 14Z" stroke="#EFEEE6" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Os Arvoredos</div>
+        <div class="brand-sub">Painel de gestão</div>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-item active" data-view="dashboard">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5Z" stroke="currentColor" stroke-width="1.3"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="agenda">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 6.5h12M5.5 2v2.5M10.5 2v2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>Agenda</span>
+      </button>
+      <button class="nav-item" data-view="clientes">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.6" stroke="currentColor" stroke-width="1.3"/><path d="M2.8 14c.6-2.8 2.7-4.3 5.2-4.3s4.6 1.5 5.2 4.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>Clientes</span>
+      </button>
+      <button class="nav-item" data-view="evento">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2h6l2.5 2.5V14H4V2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6 8h4M6 10.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span>Ficha do evento</span>
+      </button>
+      <button class="nav-item" data-view="reserva">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span>Nova reserva</span>
+      </button>
+      <div style="height:1px;background:rgba(255,255,255,.1);margin:10px 4px;"></div>
+      <button class="nav-item" data-view="financeiro">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M11.5 4.8c0-1.3-1.4-1.9-3.2-1.9-2 0-3.4.9-3.4 2.3 0 3 6.8 1.4 6.8 4.5 0 1.5-1.5 2.4-3.4 2.4-2 0-3.5-.7-3.5-2.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>Financeiro</span>
+      </button>
+      <button class="nav-item" data-view="visitas">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8s2.3-4.3 6-4.3S14 8 14 8s-2.3 4.3-6 4.3S2 8 2 8Z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="1.7" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span>Visitas</span>
+      </button>
+      <button class="nav-item" data-view="manutencao">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M9.5 3.5 12.5 6.5M3 13l4.2-4.2M9.5 3.5c-1 1-1.2 2.4-.4 3.4l-6 6c-.5.5-.5 1.3 0 1.7.5.5 1.3.5 1.7 0l6-6c1 .7 2.4.6 3.4-.4l.8-.8-2.7-2.7-.8.8Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <span>Manutenção</span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar">OA</div>
+      <div>
+        <p class="sf-name">Equipe Arvoredos</p>
+        <p class="sf-role">Administrador</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="page-head">
+        <div>
+          <h1>Bom dia</h1>
+          <p>Aqui está o resumo do salão para hoje, 25 de agosto</p>
+        </div>
+        <button class="btn btn-primary" onclick="go('reserva')">+ Nova reserva</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><p class="label">Eventos este mês</p><p class="value">14</p></div>
+        <div class="stat-card"><p class="label">Faturamento previsto</p><p class="value">R$ 87.400</p></div>
+        <div class="stat-card"><p class="label">A receber</p><p class="value warn">R$ 22.150</p></div>
+        <div class="stat-card"><p class="label">Taxa de ocupação</p><p class="value">68%</p></div>
+      </div>
+
+      <div class="board">
+        <div class="panel">
+          <div class="panel-head"><h3>Próximos eventos</h3><button class="btn btn-ghost" onclick="go('agenda')">Ver agenda</button></div>
+          <div class="row-item">
+            <div class="date-chip"><p class="m">Ago</p><p class="d">28</p></div>
+            <div style="flex:1"><p class="ri-title">Casamento — Ana e Bruno</p><p class="ri-sub">150 convidados · noite</p></div>
+            <span class="badge success">Confirmado</span>
+          </div>
+          <div class="row-item">
+            <div class="date-chip"><p class="m">Ago</p><p class="d">30</p></div>
+            <div style="flex:1"><p class="ri-title">Aniversário 15 anos — Sofia</p><p class="ri-sub">90 convidados · tarde</p></div>
+            <span class="badge warning">Sinal pendente</span>
+          </div>
+          <div class="row-item">
+            <div class="date-chip"><p class="m">Set</p><p class="d">02</p></div>
+            <div style="flex:1"><p class="ri-title">Confraternização — TechCorp</p><p class="ri-sub">200 convidados · noite</p></div>
+            <span class="badge success">Confirmado</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Pagamentos pendentes</h3></div>
+          <div class="pay-row"><div><p class="ri-title">Sofia — 15 anos</p><p class="n">Vence em 3 dias</p></div><strong style="color:var(--danger)">R$ 3.200</strong></div>
+          <div class="pay-row"><div><p class="ri-title">Ricardo — Formatura</p><p class="n">Vence em 6 dias</p></div><strong>R$ 1.800</strong></div>
+          <div class="pay-row"><div><p class="ri-title">TechCorp — Evento</p><p class="n">Vence em 12 dias</p></div><strong>R$ 8.500</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section class="view" id="view-agenda">
+      <div class="page-head">
+        <div><h1>Agenda</h1><p>Disponibilidade e reservas do salão</p></div>
+        <button class="btn btn-primary" onclick="go('reserva')">+ Nova reserva</button>
+      </div>
+      <div class="cal-head">
+        <div class="cal-nav">
+          <button class="icon-btn">‹</button>
+          <div class="cal-title">Agosto 2026</div>
+          <button class="icon-btn">›</button>
+        </div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--success)"></span>Confirmado</span>
+        <span><span class="dot" style="background:var(--warning)"></span>Provisório</span>
+        <span><span class="dot" style="background:var(--danger)"></span>Bloqueado</span>
+      </div>
+      <div class="dow"><div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div></div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </section>
+
+    <!-- CLIENTES -->
+    <section class="view" id="view-clientes">
+      <div class="page-head">
+        <div><h1>Clientes</h1><p>Funil de leads e histórico de eventos</p></div>
+        <button class="btn btn-primary">+ Novo cliente</button>
+      </div>
+      <div class="toolbar">
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.3" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 9.5 12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input placeholder="Buscar cliente" />
+        </div>
+      </div>
+      <div class="funnel">
+        <div class="funnel-card"><p class="label" style="color:var(--ink-soft);font-size:12px;margin:0">Lead</p><p class="n">9</p></div>
+        <div class="funnel-card"><p class="label" style="color:var(--ink-soft);font-size:12px;margin:0">Orçamento</p><p class="n">5</p></div>
+        <div class="funnel-card"><p class="label" style="color:var(--ink-soft);font-size:12px;margin:0">Fechado</p><p class="n" style="color:var(--success)">14</p></div>
+        <div class="funnel-card"><p class="label" style="color:var(--ink-soft);font-size:12px;margin:0">Perdido</p><p class="n" style="color:var(--ink-soft)">3</p></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><td>Cliente</td><td>Evento</td><td>Data</td><td>Status</td><td></td></tr></thead>
+          <tbody id="clientes-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FICHA DO EVENTO -->
+    <section class="view" id="view-evento">
+      <div class="page-head">
+        <div><h1>Ficha do evento</h1><p>Contrato e financeiro em um só lugar</p></div>
+      </div>
+      <div class="event-card">
+        <div class="ev-top">
+          <div class="ev-id">
+            <div class="ev-avatar">AB</div>
+            <div><h3>Casamento — Ana e Bruno</h3><p>28 de agosto de 2026 · noite · 150 convidados</p></div>
+          </div>
+          <span class="badge success">Confirmado</span>
+        </div>
+        <div class="money-grid">
+          <div class="money-card"><p class="l">Valor do contrato</p><p class="v">R$ 18.500</p></div>
+          <div class="money-card"><p class="l">Já pago</p><p class="v" style="color:var(--success)">R$ 12.500</p></div>
+          <div class="money-card"><p class="l">Saldo restante</p><p class="v" style="color:var(--warning)">R$ 6.000</p></div>
+        </div>
+        <div class="leaf-divider" style="margin:0 0 10px;"><span>Parcelas</span><div class="line"></div></div>
+        <table class="installments">
+          <tbody>
+            <tr><td style="padding:8px 0;color:var(--ink-soft)">Sinal — 10/06/2026</td><td style="text-align:right">R$ 5.000</td><td style="text-align:right;width:100px"><span class="badge success">Pago</span></td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:8px 0;color:var(--ink-soft)">2ª parcela — 10/07/2026</td><td style="text-align:right">R$ 7.500</td><td style="text-align:right"><span class="badge success">Pago</span></td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:8px 0;color:var(--ink-soft)">Saldo final — 20/08/2026</td><td style="text-align:right">R$ 6.000</td><td style="text-align:right"><span class="badge danger">Pendente</span></td></tr>
+          </tbody>
+        </table>
+        <div class="btn-row">
+          <button class="btn btn-primary">Registrar pagamento</button>
+          <button class="btn btn-ghost">Ver contrato</button>
+          <button class="btn btn-ghost">Editar evento</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVA RESERVA -->
+    <section class="view" id="view-reserva">
+      <div class="page-head">
+        <div><h1>Nova reserva</h1><p>Registre um novo evento na agenda</p></div>
+      </div>
+      <div class="form-card">
+        <div class="field"><label>Cliente</label><input placeholder="Nome do cliente ou empresa" /></div>
+        <div class="field field-row">
+          <div><label>Data do evento</label><input type="date" /></div>
+          <div><label>Turno</label><select><option>Manhã</option><option>Tarde</option><option selected>Noite</option></select></div>
+        </div>
+        <div class="field field-row">
+          <div><label>Tipo de evento</label><select><option>Casamento</option><option>Aniversário</option><option>Debutante</option><option>Formatura</option><option>Corporativo</option></select></div>
+          <div><label>Convidados</label><input type="number" placeholder="Ex: 120" /></div>
+        </div>
+        <div class="field"><label>Valor do contrato (R$)</label><input placeholder="18.500,00" /></div>
+        <div class="field"><label>Sinal de entrada (R$)</label><input placeholder="5.000,00" /></div>
+        <div class="field">
+          <label>Status inicial</label>
+          <div class="status-toggle">
+            <button class="sel" onclick="selStatus(this)">Provisório</button>
+            <button onclick="selStatus(this)">Confirmado</button>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary">Salvar reserva</button>
+          <button class="btn btn-ghost">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINANCEIRO -->
+    <section class="view" id="view-financeiro">
+      <div class="page-head">
+        <div><h1>Financeiro</h1><p>Visão geral do caixa do salão — não só do evento individual</p></div>
+        <button class="btn btn-ghost">+ Lançar despesa</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><p class="label">Receita do mês</p><p class="value" style="color:var(--success)">R$ 87.400</p></div>
+        <div class="stat-card"><p class="label">Despesas do mês</p><p class="value" style="color:var(--danger)">R$ 24.900</p></div>
+        <div class="stat-card"><p class="label">Saldo do mês</p><p class="value">R$ 62.500</p></div>
+        <div class="stat-card"><p class="label">A receber (parcelas)</p><p class="value warn">R$ 22.150</p></div>
+      </div>
+
+      <div class="board">
+        <div class="panel">
+          <div class="panel-head"><h3>Fluxo de caixa — últimos 6 meses</h3></div>
+          <div style="display:flex;align-items:flex-end;gap:14px;height:150px;padding:6px 4px 0;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:100%;background:var(--sage-mist);border-radius:5px 5px 0 0;height:58px;"></div>
+              <span style="font-size:11px;color:var(--ink-soft)">Mar</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:100%;background:var(--sage-mist);border-radius:5px 5px 0 0;height:72px;"></div>
+              <span style="font-size:11px;color:var(--ink-soft)">Abr</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:100%;background:var(--sage-mist);border-radius:5px 5px 0 0;height:64px;"></div>
+              <span style="font-size:11px;color:var(--ink-soft)">Mai</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:100%;background:var(--sage-mist);border-radius:5px 5px 0 0;height:90px;"></div>
+              <span style="font-size:11px;color:var(--ink-soft)">Jun</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:100%;background:var(--sage-mist);border-radius:5px 5px 0 0;height:100px;"></div>
+              <span style="font-size:11px;color:var(--ink-soft)">Jul</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:100%;background:var(--sage);border-radius:5px 5px 0 0;height:132px;"></div>
+              <span style="font-size:11px;color:var(--ink-soft)">Ago</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Contas a pagar</h3></div>
+          <div class="pay-row"><div><p class="ri-title">Buffet Sabor & Arte</p><p class="n">Vence em 2 dias</p></div><strong style="color:var(--danger)">R$ 6.200</strong></div>
+          <div class="pay-row"><div><p class="ri-title">Energia elétrica</p><p class="n">Vence em 5 dias</p></div><strong>R$ 1.480</strong></div>
+          <div class="pay-row"><div><p class="ri-title">Manutenção elétrica</p><p class="n">Vence em 9 dias</p></div><strong>R$ 2.300</strong></div>
+          <div class="pay-row"><div><p class="ri-title">Segurança (freela)</p><p class="n">Vence em 14 dias</p></div><strong>R$ 900</strong></div>
+        </div>
+      </div>
+
+      <div class="leaf-divider"><span>Despesas por categoria</span><div class="line"></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><td>Categoria</td><td>Este mês</td><td>Mês anterior</td><td></td></tr></thead>
+          <tbody>
+            <tr><td>Fornecedores / terceirizados</td><td>R$ 11.200</td><td style="color:var(--ink-soft)">R$ 9.800</td><td></td></tr>
+            <tr><td>Manutenção</td><td>R$ 4.600</td><td style="color:var(--ink-soft)">R$ 1.200</td><td></td></tr>
+            <tr><td>Contas fixas (água, luz, limpeza)</td><td>R$ 3.100</td><td style="color:var(--ink-soft)">R$ 2.950</td><td></td></tr>
+            <tr><td>Equipe / freelancers</td><td>R$ 4.000</td><td style="color:var(--ink-soft)">R$ 3.600</td><td></td></tr>
+            <tr><td>Marketing</td><td>R$ 2.000</td><td style="color:var(--ink-soft)">R$ 1.500</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VISITAS -->
+    <section class="view" id="view-visitas">
+      <div class="page-head">
+        <div><h1>Visitas</h1><p>Agenda de visitas de clientes interessados ao espaço</p></div>
+        <button class="btn btn-primary">+ Agendar visita</button>
+      </div>
+
+      <div class="funnel">
+        <div class="funnel-card"><p style="color:var(--ink-soft);font-size:12px;margin:0">Esta semana</p><p class="n">6</p></div>
+        <div class="funnel-card"><p style="color:var(--ink-soft);font-size:12px;margin:0">A confirmar</p><p class="n" style="color:var(--warning)">2</p></div>
+        <div class="funnel-card"><p style="color:var(--ink-soft);font-size:12px;margin:0">Realizadas no mês</p><p class="n">11</p></div>
+        <div class="funnel-card"><p style="color:var(--ink-soft);font-size:12px;margin:0">Taxa de conversão</p><p class="n" style="color:var(--success)">58%</p></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><td>Cliente</td><td>Data / hora</td><td>Interesse</td><td>Origem</td><td>Status</td><td></td></tr></thead>
+          <tbody>
+            <tr><td>Camila Torres</td><td>27/08 · 10h</td><td style="color:var(--ink-soft)">Aniversário</td><td style="color:var(--ink-soft)">Instagram</td><td><span class="badge success">Confirmada</span></td><td style="text-align:right"><button class="icon-btn">›</button></td></tr>
+            <tr><td>Felipe Andrade</td><td>27/08 · 15h</td><td style="color:var(--ink-soft)">Casamento</td><td style="color:var(--ink-soft)">Indicação</td><td><span class="badge warning">A confirmar</span></td><td style="text-align:right"><button class="icon-btn">›</button></td></tr>
+            <tr><td>Marcos Vinícius</td><td>29/08 · 11h</td><td style="color:var(--ink-soft)">Corporativo</td><td style="color:var(--ink-soft)">Site</td><td><span class="badge success">Confirmada</span></td><td style="text-align:right"><button class="icon-btn">›</button></td></tr>
+            <tr><td>Beatriz Lemos</td><td>24/08 · 09h</td><td style="color:var(--ink-soft)">Debutante</td><td style="color:var(--ink-soft)">Instagram</td><td><span class="badge" style="background:var(--surface-alt);color:var(--ink-soft)">Realizada</span></td><td style="text-align:right"><button class="icon-btn">›</button></td></tr>
+            <tr><td>Grupo Ipê Eventos</td><td>22/08 · 14h</td><td style="color:var(--ink-soft)">Corporativo</td><td style="color:var(--ink-soft)">Indicação</td><td><span class="badge danger">Não veio</span></td><td style="text-align:right"><button class="icon-btn">›</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MANUTENÇÃO -->
+    <section class="view" id="view-manutencao">
+      <div class="page-head">
+        <div><h1>Manutenção</h1><p>Tarefas por ordem de prioridade</p></div>
+        <button class="btn btn-primary">+ Nova tarefa</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><p class="label">Pendentes</p><p class="value">7</p></div>
+        <div class="stat-card"><p class="label">Prioridade alta</p><p class="value" style="color:var(--danger)">2</p></div>
+        <div class="stat-card"><p class="label">Em andamento</p><p class="value" style="color:var(--warning)">3</p></div>
+        <div class="stat-card"><p class="label">Custo estimado (mês)</p><p class="value">R$ 4.600</p></div>
+      </div>
+
+      <div class="leaf-divider"><span>Fila de tarefas</span><div class="line"></div></div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="panel" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--danger);">
+          <span class="badge danger">Alta</span>
+          <div style="flex:1;">
+            <p class="ri-title">Reparo no ar-condicionado do salão principal</p>
+            <p class="ri-sub">Corretiva · responsável: Jorge (manutenção) · impacta evento de 28/08</p>
+          </div>
+          <span class="badge danger">Atrasada</span>
+        </div>
+        <div class="panel" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--danger);">
+          <span class="badge danger">Alta</span>
+          <div style="flex:1;">
+            <p class="ri-title">Revisão do quadro elétrico</p>
+            <p class="ri-sub">Preventiva · responsável: eletricista terceirizado · prazo: 30/08</p>
+          </div>
+          <span class="badge warning">Em andamento</span>
+        </div>
+        <div class="panel" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--warning);">
+          <span class="badge warning">Média</span>
+          <div style="flex:1;">
+            <p class="ri-title">Pintura da fachada lateral</p>
+            <p class="ri-sub">Corretiva · responsável: equipe própria · prazo: 10/09</p>
+          </div>
+          <span class="badge" style="background:var(--surface-alt);color:var(--ink-soft)">Pendente</span>
+        </div>
+        <div class="panel" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--warning);">
+          <span class="badge warning">Média</span>
+          <div style="flex:1;">
+            <p class="ri-title">Troca de lâmpadas do jardim</p>
+            <p class="ri-sub">Preventiva · responsável: Jorge (manutenção) · prazo: 05/09</p>
+          </div>
+          <span class="badge" style="background:var(--surface-alt);color:var(--ink-soft)">Pendente</span>
+        </div>
+        <div class="panel" style="display:flex;align-items:center;gap:14px;border-left:4px solid var(--success);">
+          <span class="badge success">Baixa</span>
+          <div style="flex:1;">
+            <p class="ri-title">Verificar rodapés do salão de festas menor</p>
+            <p class="ri-sub">Preventiva · responsável: equipe própria · prazo: 20/09</p>
+          </div>
+          <span class="badge" style="background:var(--surface-alt);color:var(--ink-soft)">Pendente</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  function go(view){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('view-'+view).classList.add('active');
+    document.querySelector('.nav-item[data-view="'+view+'"]').classList.add('active');
+  }
+  document.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.addEventListener('click',()=>go(btn.dataset.view));
+  });
+
+  function selStatus(btn){
+    btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+  }
+
+  // Calendar
+  (function(){
+    var grid = document.getElementById('cal-grid');
+    var firstDay = 6; // Aug 1 2026 = Saturday
+    var daysInMonth = 31;
+    var events = {
+      3:{status:'confirmed',label:'Debut Mari'},
+      8:{status:'blocked',label:'Manutenção'},
+      14:{status:'confirmed',label:'Casam. Lima'},
+      15:{status:'confirmed',label:'Casam. Lima'},
+      20:{status:'provisional',label:'Aniv. Rocha'},
+      22:{status:'confirmed',label:'Formatura'},
+      28:{status:'confirmed',label:'Casam. A&B'},
+      30:{status:'provisional',label:'15 anos Sofia'}
+    };
+    var html='';
+    for(var i=0;i<firstDay;i++) html += '<div></div>';
+    for(var d=1; d<=daysInMonth; d++){
+      var ev = events[d];
+      if(ev){
+        html += '<button class="cal-cell '+ev.status+'" onclick="go(\'evento\')"><span class="n">'+d+'</span><span class="lbl">'+ev.label+'</span></button>';
+      } else {
+        html += '<button class="cal-cell" onclick="go(\'reserva\')"><span class="n">'+d+'</span><span></span></button>';
+      }
+    }
+    grid.innerHTML = html;
+  })();
+
+  // Clientes table
+  (function(){
+    var rows = [
+      ['Ana Beatriz','Casamento','28/08','success','Fechado'],
+      ['Ricardo Nunes','Formatura','05/09','success','Fechado'],
+      ['Camila Torres','Aniversário','—','warning','Orçamento'],
+      ['TechCorp Ltda','Corporativo','02/09','success','Fechado'],
+      ['Julia Prado','Debutante','—','danger','Lead']
+    ];
+    var tbody = document.getElementById('clientes-tbody');
+    tbody.innerHTML = rows.map(function(r){
+      return '<tr><td>'+r[0]+'</td><td style="color:var(--ink-soft)">'+r[1]+'</td><td style="color:var(--ink-soft)">'+r[2]+'</td>'+
+             '<td><span class="badge '+r[3]+'">'+r[4]+'</span></td>'+
+             '<td style="text-align:right"><button class="icon-btn" onclick="go(\'evento\')">›</button></td></tr>';
+    }).join('');
+  })();
+</script>
+</body>
+</html>
